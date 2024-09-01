@@ -44,10 +44,29 @@ model = get_peft_model(model, peft_config)
 # Load dataset
 dataset = load_dataset("prof-freakenstein/medico-preset")
 
-# Preprocess data
-def preprocess_function(examples):
-    return tokenizer(examples["text"], truncation=True, padding="max_length", max_length=512)
+# Print dataset structure
+print("Dataset structure:")
+for split in dataset.keys():
+    print(f"Split: {split}")
+    print(f"Columns: {dataset[split].column_names}")
+    print(f"Number of examples: {len(dataset[split])}")
+    print(f"First example: {dataset[split][0]}")
+    print()
 
+# Modify the preprocess function to use both input and output
+def preprocess_function(examples):
+    inputs = examples["input"]
+    outputs = examples["output"]
+    
+    # Combine input and output with a separator
+    full_texts = [f"Input: {inp}\nOutput: {out}" for inp, out in zip(inputs, outputs)]
+    
+    # Tokenize the combined texts
+    tokenized = tokenizer(full_texts, truncation=True, padding="max_length", max_length=512)
+    
+    return tokenized
+
+# Tokenize the dataset
 tokenized_dataset = dataset.map(
     preprocess_function,
     batched=True,
